@@ -1,6 +1,7 @@
 package golor
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -8,9 +9,9 @@ type GolorMode int
 
 const (
 	Plain GolorMode = iota
-	Bit3_4
 	Bit8
-	Bit24
+	Bit256
+	BitRGB
 )
 
 type GolorSound int
@@ -73,6 +74,19 @@ type Golor struct {
 	sb  strings.Builder
 }
 
+func SetMode(s string) {
+	switch s {
+	case "bit8":
+		Mode = Bit8
+	case "bit256":
+		Mode = Bit256
+	case "bitrgb":
+		Mode = BitRGB
+	default:
+		Mode = Plain
+	}
+}
+
 func New() Golor {
 	g := Golor{
 		len: 0,
@@ -80,252 +94,529 @@ func New() Golor {
 	return g
 }
 
-func (g *Golor) Len() int {
-	return g.len
+func (o *Golor) Len() int {
+	return o.len
 }
 
-func (g *Golor) Build() string {
-	return g.sb.String()
+func (o *Golor) String() string {
+	return o.sb.String()
 }
 
-func (g *Golor) Write(s string) *Golor {
-	g.len += len(s)
-	g.sb.WriteString(s)
-	return g
+func (o *Golor) Add(s string) *Golor {
+	o.len += len(s)
+	o.sb.WriteString(s)
+	return o
 }
 
-func (g *Golor) Reset() *Golor {
+func (o *Golor) Reset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Reset))
+		o.sb.WriteString(string(Reset))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) ResetAdd(s string) *Golor {
-	g.Reset()
-	g.Write(s)
-	return g
+func (o *Golor) ResetAdd(s string) *Golor {
+	o.Reset()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Bell() *Golor {
+func (o *Golor) Bell() *Golor {
 	if Mode != Plain && Sound != Mute {
-		g.sb.WriteString("\a")
+		o.sb.WriteString("\a")
 	}
-	return g
+	return o
 }
 
-func (g *Golor) BellAdd(s string) *Golor {
-	g.Bell()
-	g.Write(s)
-	return g
+func (o *Golor) BellAdd(s string) *Golor {
+	o.Bell()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Bold() *Golor {
+func (o *Golor) Bold() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Bold))
+		o.sb.WriteString(string(Bold))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) BoldAdd(s string) *Golor {
-	g.Bold()
-	g.Write(s)
-	return g
+func (o *Golor) BoldAdd(s string) *Golor {
+	o.Bold()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) BoldReset() *Golor {
+func (o *Golor) BoldReset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Boldr))
+		o.sb.WriteString(string(Boldr))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) BoldResetAdd(s string) *Golor {
-	g.BoldReset()
-	g.Write(s)
-	return g
+func (o *Golor) BoldResetAdd(s string) *Golor {
+	o.BoldReset()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Faint() *Golor {
+func (o *Golor) Faint() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Faint))
+		o.sb.WriteString(string(Faint))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) FaintAdd(s string) *Golor {
-	g.Faint()
-	g.Write(s)
-	return g
+func (o *Golor) FaintAdd(s string) *Golor {
+	o.Faint()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) FaintReset() *Golor {
+func (o *Golor) FaintReset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Faintr))
+		o.sb.WriteString(string(Faintr))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) FaintResetAdd(s string) *Golor {
-	g.FaintReset()
-	g.Write(s)
-	return g
+func (o *Golor) FaintResetAdd(s string) *Golor {
+	o.FaintReset()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Italic() *Golor {
+func (o *Golor) Italic() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Italic))
+		o.sb.WriteString(string(Italic))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) ItalicAdd(s string) *Golor {
-	g.Italic()
-	g.Write(s)
-	return g
+func (o *Golor) ItalicAdd(s string) *Golor {
+	o.Italic()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) ItalicReset() *Golor {
+func (o *Golor) ItalicReset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Italicr))
+		o.sb.WriteString(string(Italicr))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) ItalicResetAdd(s string) *Golor {
-	g.ItalicReset()
-	g.Write(s)
-	return g
+func (o *Golor) ItalicResetAdd(s string) *Golor {
+	o.ItalicReset()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Underline() *Golor {
+func (o *Golor) Underline() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Underline))
+		o.sb.WriteString(string(Underline))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) UnderlineAdd(s string) *Golor {
-	g.Underline()
-	g.Write(s)
-	return g
+func (o *Golor) UnderlineAdd(s string) *Golor {
+	o.Underline()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) UnderlineReset() *Golor {
+func (o *Golor) UnderlineReset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Underliner))
+		o.sb.WriteString(string(Underliner))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) UnderlineResetAdd(s string) *Golor {
-	g.UnderlineReset()
-	g.Write(s)
-	return g
+func (o *Golor) UnderlineResetAdd(s string) *Golor {
+	o.UnderlineReset()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Blinking() *Golor {
+func (o *Golor) Blinking() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Blinking))
+		o.sb.WriteString(string(Blinking))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) BlinkingAdd(s string) *Golor {
-	g.Blinking()
-	g.Write(s)
-	return g
+func (o *Golor) BlinkingAdd(s string) *Golor {
+	o.Blinking()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) BlinkingReset() *Golor {
+func (o *Golor) BlinkingReset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Blinkingr))
+		o.sb.WriteString(string(Blinkingr))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) BlinkingResetAdd(s string) *Golor {
-	g.BlinkingReset()
-	g.Write(s)
-	return g
+func (o *Golor) BlinkingResetAdd(s string) *Golor {
+	o.BlinkingReset()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Reverse() *Golor {
+func (o *Golor) Reverse() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Reverse))
+		o.sb.WriteString(string(Reverse))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) ReverseAdd(s string) *Golor {
-	g.Reverse()
-	g.Write(s)
-	return g
+func (o *Golor) ReverseAdd(s string) *Golor {
+	o.Reverse()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) ReverseReset() *Golor {
+func (o *Golor) ReverseReset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Reverser))
+		o.sb.WriteString(string(Reverser))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) ReverseResetAdd(s string) *Golor {
-	g.ReverseReset()
-	g.Write(s)
-	return g
+func (o *Golor) ReverseResetAdd(s string) *Golor {
+	o.ReverseReset()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Hidden() *Golor {
+func (o *Golor) Hidden() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Hidden))
+		o.sb.WriteString(string(Hidden))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) HiddenAdd(s string) *Golor {
-	g.Hidden()
-	g.Write(s)
-	return g
+func (o *Golor) HiddenAdd(s string) *Golor {
+	o.Hidden()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) HiddenReset() *Golor {
+func (o *Golor) HiddenReset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Hiddenr))
+		o.sb.WriteString(string(Hiddenr))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) HiddenResetAdd(s string) *Golor {
-	g.HiddenReset()
-	g.Write(s)
-	return g
+func (o *Golor) HiddenResetAdd(s string) *Golor {
+	o.HiddenReset()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) Strikerthrough() *Golor {
+func (o *Golor) Strikerthrough() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Strikerthrough))
+		o.sb.WriteString(string(Strikerthrough))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) StrikerthroughAdd(s string) *Golor {
-	g.Strikerthrough()
-	g.Write(s)
-	return g
+func (o *Golor) StrikerthroughAdd(s string) *Golor {
+	o.Strikerthrough()
+	o.Add(s)
+	return o
 }
 
-func (g *Golor) StrikerthroughReset() *Golor {
+func (o *Golor) StrikerthroughReset() *Golor {
 	if Mode != Plain {
-		g.sb.WriteString(string(Strikerthroughr))
+		o.sb.WriteString(string(Strikerthroughr))
 	}
-	return g
+	return o
 }
 
-func (g *Golor) StrikerthroughResetAdd(s string) *Golor {
-	g.StrikerthroughReset()
-	g.Write(s)
-	return g
+func (o *Golor) StrikerthroughResetAdd(s string) *Golor {
+	o.StrikerthroughReset()
+	o.Add(s)
+	return o
 }
 
-//References https://en.wikipedia.org/wiki/ANSI_escape_code
+func (o *Golor) ColorBit8(c GolorColor) *Golor {
+	if Mode == Bit8 {
+		o.sb.WriteString(string(c))
+	}
+	return o
+}
+
+func (o *Golor) ColorBit8Add(s string, c GolorColor) *Golor {
+	o.ColorBit8(c)
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) Black() *Golor {
+	o.ColorBit8(Black)
+	return o
+}
+
+func (o *Golor) BlackAdd(s string) *Golor {
+	o.Black()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) BlackBack() *Golor {
+	o.ColorBit8(BlackBack)
+	return o
+}
+
+func (o *Golor) BlackBackAdd(s string) *Golor {
+	o.BlackBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) Red() *Golor {
+	o.ColorBit8(Red)
+	return o
+}
+
+func (o *Golor) RedAdd(s string) *Golor {
+	o.Red()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) RedBack() *Golor {
+	o.ColorBit8(RedBack)
+	return o
+}
+
+func (o *Golor) RedBackAdd(s string) *Golor {
+	o.RedBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) Green() *Golor {
+	o.ColorBit8(Green)
+	return o
+}
+
+func (o *Golor) GreenAdd(s string) *Golor {
+	o.Green()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) GreenBack() *Golor {
+	o.ColorBit8(GreenBack)
+	return o
+}
+
+func (o *Golor) GreenBackAdd(s string) *Golor {
+	o.GreenBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) Yellow() *Golor {
+	o.ColorBit8(Yellow)
+	return o
+}
+
+func (o *Golor) YellowAdd(s string) *Golor {
+	o.Yellow()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) YellowBack() *Golor {
+	o.ColorBit8(YellowBack)
+	return o
+}
+
+func (o *Golor) YellowBackAdd(s string) *Golor {
+	o.YellowBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) Blue() *Golor {
+	o.ColorBit8(Blue)
+	return o
+}
+
+func (o *Golor) BlueAdd(s string) *Golor {
+	o.Blue()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) BlueBack() *Golor {
+	o.ColorBit8(BlueBack)
+	return o
+}
+
+func (o *Golor) BlueBackAdd(s string) *Golor {
+	o.BlueBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) Magenta() *Golor {
+	o.ColorBit8(Magenta)
+	return o
+}
+
+func (o *Golor) MagentaAdd(s string) *Golor {
+	o.Magenta()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) MagentaBack() *Golor {
+	o.ColorBit8(MagentaBack)
+	return o
+}
+
+func (o *Golor) MagentaBackAdd(s string) *Golor {
+	o.MagentaBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) Cyan() *Golor {
+	o.ColorBit8(Cyan)
+	return o
+}
+
+func (o *Golor) CyanAdd(s string) *Golor {
+	o.Cyan()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) CyanBack() *Golor {
+	o.ColorBit8(CyanBack)
+	return o
+}
+
+func (o *Golor) CyanBackAdd(s string) *Golor {
+	o.CyanBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) White() *Golor {
+	o.ColorBit8(White)
+	return o
+}
+
+func (o *Golor) WhiteAdd(s string) *Golor {
+	o.White()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) WhiteBack() *Golor {
+	o.ColorBit8(WhiteBack)
+	return o
+}
+
+func (o *Golor) WhiteBackAdd(s string) *Golor {
+	o.WhiteBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) Default() *Golor {
+	o.ColorBit8(Default)
+	return o
+}
+
+func (o *Golor) DefaultAdd(s string) *Golor {
+	o.Default()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) DefaultBack() *Golor {
+	o.ColorBit8(DefaultBack)
+	return o
+}
+
+func (o *Golor) DefaultBackAdd(s string) *Golor {
+	o.DefaultBack()
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) ColorBit256(i int) *Golor {
+	if Mode == Bit256 {
+		o.sb.WriteString("\x1b[38;5;")
+		o.sb.WriteString(strconv.Itoa(i))
+		o.sb.WriteString("m")
+	}
+	return o
+}
+
+func (o *Golor) ColorBit256Add(s string, i int) *Golor {
+	o.ColorBit256(i)
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) ColorBit256Back(i int) *Golor {
+	if Mode == Bit256 {
+		o.sb.WriteString("\x1b[48;5;")
+		o.sb.WriteString(strconv.Itoa(i))
+		o.sb.WriteString("m")
+	}
+	return o
+}
+
+func (o *Golor) ColorBit256BackAdd(s string, i int) *Golor {
+	o.ColorBit256Back(i)
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) ColorBitRGB(r int, g int, b int) *Golor {
+	if Mode == BitRGB {
+		o.sb.WriteString("\x1b[38;2;")
+		o.sb.WriteString(strconv.Itoa(r))
+		o.sb.WriteString(";")
+		o.sb.WriteString(strconv.Itoa(g))
+		o.sb.WriteString(";")
+		o.sb.WriteString(strconv.Itoa(b))
+		o.sb.WriteString("m")
+	}
+	return o
+}
+
+func (o *Golor) ColorBitRGBAdd(s string, r int, g int, b int) *Golor {
+	o.ColorBitRGB(r, g, b)
+	o.Add(s)
+	return o
+}
+
+func (o *Golor) ColorBitRGBBack(r int, g int, b int) *Golor {
+	if Mode == BitRGB {
+		o.sb.WriteString("\x1b[48;2;")
+		o.sb.WriteString(strconv.Itoa(r))
+		o.sb.WriteString(";")
+		o.sb.WriteString(strconv.Itoa(g))
+		o.sb.WriteString(";")
+		o.sb.WriteString(strconv.Itoa(b))
+		o.sb.WriteString("m")
+	}
+	return o
+}
+
+func (o *Golor) ColorBitRGBBackAdd(s string, r int, g int, b int) *Golor {
+	o.ColorBitRGBBack(r, g, b)
+	o.Add(s)
+	return o
+}
