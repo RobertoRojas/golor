@@ -7,9 +7,24 @@ This is a libary to provide you the functions to create string with different co
 - Bit256
 - BitRGB
 
-The usage of them depend of the compatibility of the ANSI Codes and your shell.
+Change the golor.Mode to select the mode that you want to. The usage of them depend of the compatibility of the ANSI Codes and your shell.
 
-// Graphic mode doc
+You can use different kind of graphic modes, this will work until the mode is not plain, this is the list:
+
+- Reset
+- Bold
+- Faint
+- Italic
+- Underline
+- Blinking
+- Reverse
+- Hidden
+- Strikerthrough
+
+About the **Bell**, this is a mode that make a sound, you can mute it changing the golor.Sound value:
+
+- Active(default)
+- Mute
 
 ## Examples
 
